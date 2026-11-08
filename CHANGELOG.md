@@ -4,6 +4,13 @@ All notable changes to this package are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-08
+
+### Added
+- `SkosReader` reads Turtle, RDF/XML and N-Triples into schemes and concepts, with warnings for what it bent or left out; `ReadResult::vocabulary()` picks a scheme.
+- `ThesaurusTable` reads a thesaurus kept as a table: preferred and non-preferred terms, compound equivalences, names with commas, stable URIs.
+- `Concept::$inSchemes` and `Concept::$topConceptOf`.
+
 ## [0.1.0] - 2026-11-08
 
 ### Added

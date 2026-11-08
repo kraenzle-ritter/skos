@@ -47,6 +47,12 @@ final readonly class Concept
     /** @var list<string> */
     public array $closeMatch;
 
+    /** @var list<string> the schemes the concept says it belongs to (`skos:inScheme`) */
+    public array $inSchemes;
+
+    /** @var list<string> the schemes it is a top concept of (`skos:topConceptOf`) */
+    public array $topConceptOf;
+
     /**
      * @param  array<string, string>  $prefLabels  one per language (SKOS S14)
      * @param  array<string, list<string>>  $altLabels
@@ -59,6 +65,8 @@ final readonly class Concept
      * @param  list<string>  $related
      * @param  list<string>  $exactMatch
      * @param  list<string>  $closeMatch
+     * @param  list<string>  $inSchemes
+     * @param  list<string>  $topConceptOf
      */
     public function __construct(
         public string $uri,
@@ -73,6 +81,8 @@ final readonly class Concept
         array $related = [],
         array $exactMatch = [],
         array $closeMatch = [],
+        array $inSchemes = [],
+        array $topConceptOf = [],
     ) {
         Uri::assertAbsolute($uri);
 
@@ -96,6 +106,8 @@ final readonly class Concept
         $this->related = self::uris($related, $uri);
         $this->exactMatch = self::uris($exactMatch, $uri);
         $this->closeMatch = self::uris($closeMatch, $uri);
+        $this->inSchemes = self::uris($inSchemes, $uri);
+        $this->topConceptOf = self::uris($topConceptOf, $uri);
     }
 
     /**
