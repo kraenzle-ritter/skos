@@ -13,7 +13,6 @@ SKOS vocabularies in PHP: concepts and concept schemes as plain value objects, r
 - **Inverses completed.** Hierarchy and `related` are written in both directions wherever both ends are in the file, so a host that stores an edge once (child → parent) gets `skos:narrower` as well. A link to a concept outside the file is written from this side only.
 - **Top concepts** are the concepts without any broader concept.
 - **Subtrees:** a concept and everything below it, as a vocabulary of the same scheme; links leaving the subtree stay.
-
 - **Reading SKOS** (`SkosReader`): schemes and concepts, lenient where thesauri are careless (a second preferred label becomes an alternative one, a broken language tag is dropped, blank nodes are left out), with warnings for a report. `ReadResult::vocabulary()` picks a scheme; a file without one takes the caller's.
 - **Reading thesaurus tables** (`ThesaurusTable`): one row per term with `term`, `broader`, `use_for`, `use`, `related`, `notation`, `definition`. Non-preferred terms become alternative labels; a compound equivalence («use A, B») becomes one on each and is reported. Several terms in a cell are separated by `;`, and by commas only where the whole cell is no term itself, so names like «Arbeit, Industrie, Wirtschaft» survive. URIs are built from the scheme URI and the term, stable across readings.
 
