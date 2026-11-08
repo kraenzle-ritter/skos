@@ -75,6 +75,26 @@ final class ReaderTest extends TestCase
         $this->assertNotEmpty(array_filter($result->warnings, fn (string $w): bool => str_contains($w, 'language tag «x»')));
     }
 
+    public function test_deprecated_concepts_stay_out_and_their_names_go_to_the_replacement(): void
+    {
+        $result = (new SkosReader)->read(<<<'TTL'
+            @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix dcterms: <http://purl.org/dc/terms/> .
+            <https://e.org/s> a skos:ConceptScheme .
+            <https://e.org/new> a skos:Concept ; skos:prefLabel "Neu"@de ; skos:altLabel "Frisch"@de ; skos:inScheme <https://e.org/s> .
+            <https://e.org/old> a skos:Concept ; skos:prefLabel "Alt"@de ; skos:altLabel "Uralt"@de, "Old one"@en ;
+                owl:deprecated true ; dcterms:isReplacedBy <https://e.org/new> ; skos:inScheme <https://e.org/s> .
+            <https://e.org/gone> a skos:Concept ; skos:prefLabel "Weg"@de ; owl:deprecated "true"^^<http://www.w3.org/2001/XMLSchema#boolean> ; skos:inScheme <https://e.org/s> .
+            TTL, Format::Turtle);
+
+        $vocabulary = $result->vocabulary();
+
+        $this->assertSame(['https://e.org/new'], array_keys($vocabulary->concepts()));
+        $this->assertSame(['de' => ['Frisch', 'Alt', 'Uralt'], 'en' => ['Old one']], $vocabulary->get('https://e.org/new')?->altLabels);
+        $this->assertCount(2, $result->deprecated());
+    }
+
     public function test_what_the_writer_writes_the_reader_reads(): void
     {
         $scheme = new ConceptScheme('https://example.org/s', ['de' => 'Test']);

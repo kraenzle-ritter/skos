@@ -43,13 +43,53 @@ final readonly class ReadResult
         }
 
         $alone = count($this->schemes) <= 1;
-        $concepts = array_filter(
+        $inScheme = array_filter(
             $this->concepts,
             fn (Concept $concept): bool => in_array($scheme->uri, [...$concept->inSchemes, ...$concept->topConceptOf], true)
                 || ($alone && $concept->inSchemes === [] && $concept->topConceptOf === []),
         );
 
-        return new Vocabulary($scheme, $concepts);
+        // Deprecated concepts stay out. Their names live on as alternative
+        // labels of the concept that replaces them, so a search for the old
+        // name still finds the new one.
+        $live = [];
+        $inherited = [];
+        foreach ($inScheme as $concept) {
+            if (! $concept->deprecated) {
+                $live[$concept->uri] = $concept;
+
+                continue;
+            }
+            foreach ($concept->replacedBy as $replacement) {
+                foreach ($concept->prefLabels as $language => $label) {
+                    $inherited[$replacement][$language][] = $label;
+                }
+                foreach ($concept->altLabels as $language => $labels) {
+                    $inherited[$replacement][$language] = [...($inherited[$replacement][$language] ?? []), ...$labels];
+                }
+            }
+        }
+        foreach ($inherited as $uri => $labels) {
+            if (isset($live[$uri])) {
+                $live[$uri] = $live[$uri]->withAltLabels($labels);
+            }
+        }
+
+        return new Vocabulary($scheme, $live);
+    }
+
+    /**
+     * The deprecated concepts of a scheme, which vocabulary() leaves out.
+     *
+     * @return list<Concept>
+     */
+    public function deprecated(?string $schemeUri = null): array
+    {
+        return array_values(array_filter(
+            $this->concepts,
+            fn (Concept $concept): bool => $concept->deprecated
+                && ($schemeUri === null || in_array($schemeUri, [...$concept->inSchemes, ...$concept->topConceptOf], true)),
+        ));
     }
 
     private function scheme(?string $uri): ?ConceptScheme

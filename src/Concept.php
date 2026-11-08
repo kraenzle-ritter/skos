@@ -53,6 +53,9 @@ final readonly class Concept
     /** @var list<string> the schemes it is a top concept of (`skos:topConceptOf`) */
     public array $topConceptOf;
 
+    /** @var list<string> concepts that replace a deprecated one (`dcterms:isReplacedBy`) */
+    public array $replacedBy;
+
     /**
      * @param  array<string, string>  $prefLabels  one per language (SKOS S14)
      * @param  array<string, list<string>>  $altLabels
@@ -67,6 +70,8 @@ final readonly class Concept
      * @param  list<string>  $closeMatch
      * @param  list<string>  $inSchemes
      * @param  list<string>  $topConceptOf
+     * @param  bool  $deprecated  no longer in use (`owl:deprecated true`)
+     * @param  list<string>  $replacedBy
      */
     public function __construct(
         public string $uri,
@@ -83,6 +88,8 @@ final readonly class Concept
         array $closeMatch = [],
         array $inSchemes = [],
         array $topConceptOf = [],
+        public bool $deprecated = false,
+        array $replacedBy = [],
     ) {
         Uri::assertAbsolute($uri);
 
@@ -108,6 +115,27 @@ final readonly class Concept
         $this->closeMatch = self::uris($closeMatch, $uri);
         $this->inSchemes = self::uris($inSchemes, $uri);
         $this->topConceptOf = self::uris($topConceptOf, $uri);
+        $this->replacedBy = self::uris($replacedBy, $uri);
+    }
+
+    /**
+     * The same concept with further alternative labels, e.g. the names of a
+     * deprecated concept it replaces.
+     *
+     * @param  array<string, list<string>>  $altLabels
+     */
+    public function withAltLabels(array $altLabels): self
+    {
+        $merged = $this->altLabels;
+        foreach ($altLabels as $language => $labels) {
+            $merged[$language] = [...($merged[$language] ?? []), ...$labels];
+        }
+
+        return new self(
+            $this->uri, $this->prefLabels, $merged, $this->hiddenLabels, $this->notations, $this->definitions,
+            $this->scopeNotes, $this->broader, $this->narrower, $this->related, $this->exactMatch, $this->closeMatch,
+            $this->inSchemes, $this->topConceptOf, $this->deprecated, $this->replacedBy,
+        );
     }
 
     /**

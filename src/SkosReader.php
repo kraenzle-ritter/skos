@@ -31,6 +31,7 @@ final class SkosReader
         RdfNamespace::set('skos', self::Skos);
         RdfNamespace::set('dcterms', 'http://purl.org/dc/terms/');
         RdfNamespace::set('dc11', 'http://purl.org/dc/elements/1.1/');
+        RdfNamespace::set('owl', 'http://www.w3.org/2002/07/owl#');
 
         $this->warnings = [];
         $graph = new Graph;
@@ -122,12 +123,26 @@ final class SkosReader
                 closeMatch: $this->uris($resource, 'skos:closeMatch'),
                 inSchemes: $this->uris($resource, 'skos:inScheme'),
                 topConceptOf: $this->uris($resource, 'skos:topConceptOf'),
+                deprecated: $this->isDeprecated($resource),
+                replacedBy: $this->uris($resource, 'dcterms:isReplacedBy'),
             );
         } catch (InvalidArgumentException $e) {
             $this->warnings[] = "{$uri}: left out, ".$e->getMessage();
 
             return null;
         }
+    }
+
+    private function isDeprecated(Resource $resource): bool
+    {
+        foreach ($resource->allLiterals('owl:deprecated') as $literal) {
+            $value = $literal->getValue();
+            if ($value === true || in_array(strtolower(is_scalar($value) ? (string) $value : ''), ['true', '1'], true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

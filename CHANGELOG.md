@@ -4,6 +4,12 @@ All notable changes to this package are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-08
+
+### Added
+- Deprecated concepts (`owl:deprecated true`): `Concept::$deprecated` and `$replacedBy` (`dcterms:isReplacedBy`). `ReadResult::vocabulary()` leaves them out and gives their labels to the concept that replaces them as alternative labels, so the old name still finds the new concept; `ReadResult::deprecated()` lists them. Found with the STW Thesaurus for Economics, which carries 1 149 of them beside 6 696 live concepts.
+- `Concept::withAltLabels()`.
+
 ## [0.2.0] - 2026-11-08
 
 ### Added
